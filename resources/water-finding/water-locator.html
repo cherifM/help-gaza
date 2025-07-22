@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خريطة الماء - غزة</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            margin: 0; 
+            padding: 10px;
+            background: #f0f0f0;
+        }
+        .container { 
+            max-width: 400px; 
+            margin: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 10px 0;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+        button:active { background: #3d8b40; }
+        .danger { background: #f44336; }
+        .danger:hover { background: #da190b; }
+        .warning { background: #ff9800; }
+        .warning:hover { background: #e68900; }
+        #status { 
+            padding: 10px; 
+            background: #e7f3ff;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .water-point {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-right: 5px solid #2196F3;
+            position: relative;
+        }
+        .water-point.clean { border-color: #4CAF50; }
+        .water-point.warning { border-color: #ff9800; }
+        .water-point.empty { border-color: #f44336; }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .coords {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        .time {
+            font-size: 11px;
+            color: #999;
+        }
+        a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .stats {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .distance {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 محدد مواقع الماء - غزة</h1>
+        
+        <div class="info-box">
+            💡 هذا التطبيق يعمل بدون إنترنت. شارك المواقع مع جيرانك لمساعدة الجميع.
+        </div>
+        
+        <button onclick="getLocation()">📍 تحديد موقعي الحالي</button>
+        <div id="status"></div>
+        
+        <h3>إضافة نقطة ماء جديدة:</h3>
+        <select id="waterStatus">
+            <option value="clean">✅ ماء نظيف صالح للشرب</option>
+            <option value="warning">⚠️ ماء متوفر لكن يحتاج تنقية/غلي</option>
+            <option value="empty">❌ نفذ الماء / مغلق</option>
+        </select>
+        
+        <input type="text" id="locationName" placeholder="اسم المكان (مثل: مسجد النور)">
+        <input type="text" id="notes" placeholder="ملاحظات (مثل: متوفر صباحاً فقط)">
+        <button onclick="saveLocation()">💾 حفظ الموقع</button>
+        
+        <div class="stats" id="stats"></div>
+        
+        <h3>المواقع المحفوظة:</h3>
+        <button onclick="sortByDistance()" style="background: #2196F3">📏 ترتيب حسب المسافة</button>
+        <div id="savedLocations"></div>
+        
+        <button onclick="shareData()" class="warning">📤 مشاركة جميع البيانات</button>
+        <button onclick="exportHTML()" style="background: #9C27B0">💾 تصدير كصفحة HTML</button>
+        <button onclick="importData()" style="background: #607D8B">📥 استيراد بيانات</button>
+        <button onclick="clearAll()" class="danger">🗑️ مسح جميع البيانات</button>
+    </div>
+
+    <script>
+        let currentLat = 0;
+        let currentLon = 0;
+
+        function getLocation() {
+            const status = document.getElementById('status');
+            
+            if (!navigator.geolocation) {
+                status.innerHTML = '❌ GPS غير مدعوم في هذا الجهاز';
+                return;
+            }
+
+            status.innerHTML = '⏳ جاري تحديد الموقع...';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    currentLat = position.coords.latitude;
+                    currentLon = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    status.innerHTML = `✅ تم تحديد الموقع بدقة ${accuracy.toFixed(0)} متر<br>
+                        <span class="coords">الإحداثيات: ${currentLat.toFixed(6)}, ${currentLon.toFixed(6)}</span>`;
+                    updateDistances();
+                },
+                (error) => {
+                    status.innerHTML = '❌ فشل تحديد الموقع. تأكد من تفعيل GPS والسماح للمتصفح';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth radius in meters
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        function formatDistance(meters) {
+            if (meters < 1000) {
+                return `${meters.toFixed(0)} متر`;
+            } else {
+                return `${(meters/1000).toFixed(1)} كم`;
+            }
+        }
+
+        function saveLocation() {
+            if (currentLat === 0) {
+                alert('يرجى تحديد الموقع أولاً بالضغط على زر "تحديد موقعي"');
+                return;
+            }
+
+            const waterStatus = document.getElementById('waterStatus').value;
+            const locationName = document.getElementById('locationName').value;
+            const notes = document.getElementById('notes').value;
+            const timestamp = new Date().toLocaleString('ar-EG');
+            
+            if (!locationName) {
+                alert('يرجى إدخال اسم المكان');
+                return;
+            }
+
+            const location = {
+                id: Date.now(),
+                lat: currentLat,
+                lon: currentLon,
+                status: waterStatus,
+                name: locationName,
+                notes: notes,
+                time: timestamp
+            };
+
+            let saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+            saved.push(location);
+            localStorage.setItem('waterLocations', JSON.stringify(saved));
+            
+            document.getElementById('locationName').value = '';
+            document.getElementById('notes').value = '';
+            alert('✅ تم حفظ الموقع بنجاح');
+            displayLocations();
+            updateStats();
+        }
+
+        function deleteLocation(id) {
+            if (confirm('هل أنت متأكد من حذف هذا الموقع؟')) {
+                let saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+                saved = saved.filter(loc => loc.id !== id);
+                localStorage.setItem('waterLocations', JSON.stringify(saved));
+                displayLocations();
+                updateStats();
+            }
+        }
+
+        function updateDistances() {
+            if (currentLat === 0) return;
+            
+            let saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+            saved.forEach(loc => {
+                loc.distance = calculateDistance(currentLat, currentLon, loc.lat, loc.lon);
+            });
+            localStorage.setItem('waterLocations', JSON.stringify(saved));
+            displayLocations();
+        }
+
+        function sortByDistance() {
+            if (currentLat === 0) {
+                alert('يرجى تحديد موقعك أولاً');
+                getLocation();
+                return;
+            }
+            
+            let saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+            saved.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+            localStorage.setItem('waterLocations', JSON.stringify(saved));
+            displayLocations();
+        }
+
+        function displayLocations() {
+            const saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+            const container = document.getElementById('savedLocations');
+            
+            if (saved.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">لا توجد مواقع محفوظة</p>';
+                return;
+            }
+
+            container.innerHTML = saved.map((loc) => {
+                const statusEmoji = {
+                    'clean': '✅',
+                    'warning': '⚠️',
+                    'empty': '❌'
+                }[loc.status];
+                
+                const statusText = {
+                    'clean': 'ماء نظيف',
+                    'warning': 'يحتاج تنقية',
+                    'empty': 'نفذ/مغلق'
+                }[loc.status];
+                
+                return `
+                    <div class="water-point ${loc.status}">
+                        <button class="delete-btn" onclick="deleteLocation(${loc.id})">حذف</button>
+                        <strong>${statusEmoji} ${loc.name}</strong><br>
+                        <span style="color: #666;">${statusText}</span><br>
+                        ${loc.notes ? `📝 ${loc.notes}<br>` : ''}
+                        ${loc.distance ? `<div class="distance">📏 المسافة: ${formatDistance(loc.distance)}</div>` : ''}
+                        <span class="coords">📍 ${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}</span><br>
+                        <span class="time">🕐 ${loc.time}</span><br>
+                        <a href="https://maps.google.com/?q=${loc.lat},${loc.lon}" target="_blank">
+                            🗺️ عرض على خرائط جوجل
+                        </a> | 
+                        <a href="geo:${loc.lat},${loc.lon}" target="_blank">
+                            📱 فتح في تطبيق الخرائط
+                        </a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+            const stats = document.getElementById('stats');
+            
+            const clean = saved.filter(l => l.status === 'clean').length;
+            const warning = saved.filter(l => l.status === 'warning').length;
+            const empty = saved.filter(l => l.status === 'empty').length;
+            
+            stats.innerHTML = `
+                📊 الإحصائيات: 
+                ✅ ${clean} نظيف | 
+                ⚠️ ${warning} يحتاج تنقية | 
+                ❌ ${empty} نفذ | 
+                المجموع: ${saved.length}
+            `;
+        }
+
+        function shareData() {
+            const saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+            if (saved.length === 0) {
+                alert('لا توجد بيانات للمشاركة');
+                return;
+            }
+
+            let text = '📍 مواقع الماء في المنطقة:\n';
+            text += `التحديث: ${new Date().toLocaleString('ar-EG')}\n\n`;
+            
+            saved.forEach((loc, index) => {
+                const statusText = {
+                    'clean': 'ماء نظيف ✅',
+                    'warning': 'يحتاج تنقية ⚠️',
+                    'empty': 'نفذ/مغلق ❌'
+                }[loc.status];
+                
+                text += `${index + 1}. ${loc.name} - ${statusText}\n`;
+                if (loc.notes) text += `   ملاحظات: ${loc.notes}\n`;
+                text += `   📍 ${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}\n`;
+                text += `   🗺️ https://maps.google.com/?q=${loc.lat},${loc.lon}\n\n`;
+            });
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'مواقع الماء في المنطقة',
+                    text: text
+                }).catch(err => {
+                    copyToClipboard(text);
+                });
+            } else {
+                copyToClipboard(text);
+            }
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert('✅ تم نسخ البيانات - يمكنك لصقها في أي تطبيق');
+        }
+
+        function exportHTML() {
+            const saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+            const dataStr = JSON.stringify(saved);
+            const htmlContent = `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مواقع الماء - ${new Date().toLocaleDateString('ar-EG')}</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        .water-point { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 5px; border-right: 5px solid #2196F3; }
+        .clean { border-color: #4CAF50; }
+        .warning { border-color: #ff9800; }
+        .empty { border-color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>مواقع الماء - ${new Date().toLocaleString('ar-EG')}</h1>
+        <div id="locations"></div>
+    </div>
+    <script>
+        const data = ${dataStr};
+        const container = document.getElementById('locations');
+        container.innerHTML = data.map(loc => {
+            const statusEmoji = {'clean': '✅', 'warning': '⚠️', 'empty': '❌'}[loc.status];
+            const statusText = {'clean': 'ماء نظيف', 'warning': 'يحتاج تنقية', 'empty': 'نفذ/مغلق'}[loc.status];
+            return \`
+                <div class="water-point \${loc.status}">
+                    <strong>\${statusEmoji} \${loc.name}</strong><br>
+                    \${statusText}<br>
+                    \${loc.notes ? '📝 ' + loc.notes + '<br>' : ''}
+                    📍 \${loc.lat.toFixed(6)}, \${loc.lon.toFixed(6)}<br>
+                    <a href="https://maps.google.com/?q=\${loc.lat},\${loc.lon}" target="_blank">🗺️ عرض على الخريطة</a>
+                </div>
+            \`;
+        }).join('');
+    </script>
+</body>
+</html>`;
+            
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `water-locations-${new Date().toISOString().split('T')[0]}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            const input = prompt('الصق البيانات المصدرة هنا (JSON format):');
+            if (!input) return;
+            
+            try {
+                const imported = JSON.parse(input);
+                if (!Array.isArray(imported)) {
+                    throw new Error('Invalid format');
+                }
+                
+                const saved = JSON.parse(localStorage.getItem('waterLocations') || '[]');
+                const merged = [...saved, ...imported];
+                
+                // Remove duplicates based on coordinates
+                const unique = merged.filter((loc, index, self) =>
+                    index === self.findIndex((l) => l.lat === loc.lat && l.lon === loc.lon)
+                );
+                
+                localStorage.setItem('waterLocations', JSON.stringify(unique));
+                displayLocations();
+                updateStats();
+                alert(`✅ تم استيراد ${imported.length} موقع`);
+            } catch (e) {
+                alert('❌ خطأ في البيانات المستوردة');
+            }
+        }
+
+        function clearAll() {
+            if (confirm('⚠️ هل أنت متأكد من مسح جميع المواقع؟ لا يمكن التراجع عن هذا الإجراء!')) {
+                localStorage.removeItem('waterLocations');
+                displayLocations();
+                updateStats();
+            }
+        }
+
+        // Initialize on load
+        displayLocations();
+        updateStats();
+        
+        // Auto-get location on load
+        setTimeout(() => {
+            getLocation();
+        }, 1000);
+    </script>
+</body>
+</html>
