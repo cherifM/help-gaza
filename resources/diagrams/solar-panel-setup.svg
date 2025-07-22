@@ -1,0 +1,112 @@
+<!DOCTYPE svg>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="24" fill="#333">
+    نظام الطاقة الشمسية الأساسي / Basic Solar System
+  </text>
+  
+  <!-- Solar Panel -->
+  <g id="solar-panel">
+    <rect x="50" y="80" width="200" height="120" fill="#1a237e" stroke="#000" stroke-width="2"/>
+    <line x1="50" y1="140" x2="250" y2="140" stroke="#fff" stroke-width="1"/>
+    <line x1="150" y1="80" x2="150" y2="200" stroke="#fff" stroke-width="1"/>
+    <line x1="100" y1="80" x2="100" y2="200" stroke="#fff" stroke-width="1"/>
+    <line x1="200" y1="80" x2="200" y2="200" stroke="#fff" stroke-width="1"/>
+    <text x="150" y="70" text-anchor="middle" font-family="Arial" font-size="14">لوح شمسي / Solar Panel</text>
+    <text x="150" y="220" text-anchor="middle" font-family="Arial" font-size="12">100W - 18V</text>
+    
+    <!-- Sun rays -->
+    <line x1="150" y1="40" x2="150" y2="60" stroke="#ffd54f" stroke-width="3"/>
+    <line x1="120" y1="45" x2="135" y2="60" stroke="#ffd54f" stroke-width="3"/>
+    <line x1="180" y1="45" x2="165" y2="60" stroke="#ffd54f" stroke-width="3"/>
+    <circle cx="150" cy="35" r="15" fill="#ffd54f"/>
+  </g>
+  
+  <!-- Charge Controller -->
+  <g id="charge-controller">
+    <rect x="350" y="100" width="100" height="80" fill="#4caf50" stroke="#000" stroke-width="2" rx="5"/>
+    <text x="400" y="95" text-anchor="middle" font-family="Arial" font-size="14">منظم الشحن</text>
+    <text x="400" y="195" text-anchor="middle" font-family="Arial" font-size="14">Charge Controller</text>
+    <circle cx="375" cy="130" r="5" fill="#00ff00"/>
+    <circle cx="400" cy="130" r="5" fill="#ffff00"/>
+    <circle cx="425" cy="130" r="5" fill="#ff0000"/>
+    <text x="400" y="155" text-anchor="middle" font-family="Arial" font-size="10">PWM/MPPT</text>
+  </g>
+  
+  <!-- Battery -->
+  <g id="battery">
+    <rect x="350" y="300" width="100" height="120" fill="#ff5722" stroke="#000" stroke-width="2" rx="5"/>
+    <rect x="370" y="290" width="20" height="10" fill="#ff5722" stroke="#000" stroke-width="2"/>
+    <rect x="410" y="290" width="20" height="10" fill="#ff5722" stroke="#000" stroke-width="2"/>
+    <text x="400" y="340" text-anchor="middle" font-family="Arial" font-size="20" fill="#fff">+</text>
+    <text x="400" y="380" text-anchor="middle" font-family="Arial" font-size="20" fill="#fff">-</text>
+    <text x="400" y="440" text-anchor="middle" font-family="Arial" font-size="14">بطارية / Battery</text>
+    <text x="400" y="455" text-anchor="middle" font-family="Arial" font-size="12">12V 100Ah</text>
+  </g>
+  
+  <!-- Inverter -->
+  <g id="inverter">
+    <rect x="550" y="320" width="120" height="80" fill="#9c27b0" stroke="#000" stroke-width="2" rx="5"/>
+    <text x="610" y="315" text-anchor="middle" font-family="Arial" font-size="14">عاكس / Inverter</text>
+    <path d="M 570 350 Q 590 340, 610 350 T 650 350" stroke="#fff" stroke-width="2" fill="none"/>
+    <text x="610" y="375" text-anchor="middle" font-family="Arial" font-size="12" fill="#fff">DC → AC</text>
+    <text x="610" y="415" text-anchor="middle" font-family="Arial" font-size="12">220V 50Hz</text>
+  </g>
+  
+  <!-- Loads -->
+  <g id="loads">
+    <rect x="700" y="300" width="80" height="120" fill="#607d8b" stroke="#000" stroke-width="2" rx="5"/>
+    <text x="740" y="295" text-anchor="middle" font-family="Arial" font-size="14">الأحمال</text>
+    <text x="740" y="435" text-anchor="middle" font-family="Arial" font-size="14">Loads</text>
+    <!-- Light bulb -->
+    <circle cx="720" cy="340" r="15" fill="#ffeb3b" stroke="#000" stroke-width="1"/>
+    <line x1="720" y1="355" x2="720" y2="365" stroke="#000" stroke-width="2"/>
+    <line x1="715" y1="365" x2="725" y2="365" stroke="#000" stroke-width="2"/>
+    <!-- Phone -->
+    <rect x="750" y="330" width="20" height="30" fill="#2196f3" stroke="#000" stroke-width="1" rx="2"/>
+    <circle cx="760" cy="355" r="2" fill="#fff"/>
+  </g>
+  
+  <!-- Wiring -->
+  <!-- Panel to Controller -->
+  <line x1="250" y1="140" x2="350" y2="140" stroke="#ff0000" stroke-width="3"/>
+  <line x1="250" y1="145" x2="350" y2="145" stroke="#000000" stroke-width="3"/>
+  <text x="300" y="135" text-anchor="middle" font-family="Arial" font-size="10" fill="#ff0000">+</text>
+  <text x="300" y="155" text-anchor="middle" font-family="Arial" font-size="10">-</text>
+  
+  <!-- Controller to Battery -->
+  <line x1="400" y1="180" x2="400" y2="300" stroke="#ff0000" stroke-width="3"/>
+  <line x1="405" y1="180" x2="405" y2="300" stroke="#000000" stroke-width="3"/>
+  
+  <!-- Battery to Inverter -->
+  <line x1="450" y1="360" x2="550" y2="360" stroke="#ff0000" stroke-width="3"/>
+  <line x1="450" y1="365" x2="550" y2="365" stroke="#000000" stroke-width="3"/>
+  
+  <!-- Inverter to Loads -->
+  <line x1="670" y1="360" x2="700" y2="360" stroke="#00f" stroke-width="3"/>
+  <line x1="670" y1="365" x2="700" y2="365" stroke="#8b4513" stroke-width="3"/>
+  <text x="685" y="355" font-family="Arial" font-size="10" fill="#00f">L</text>
+  <text x="685" y="375" font-family="Arial" font-size="10" fill="#8b4513">N</text>
+  
+  <!-- Safety components -->
+  <g id="fuse">
+    <rect x="280" y="130" width="40" height="20" fill="#fff" stroke="#000" stroke-width="2" rx="10"/>
+    <text x="300" y="145" text-anchor="middle" font-family="Arial" font-size="10">10A</text>
+    <text x="300" y="165" text-anchor="middle" font-family="Arial" font-size="10">فيوز/Fuse</text>
+  </g>
+  
+  <!-- Ground symbol -->
+  <g id="ground">
+    <line x1="400" y1="460" x2="400" y2="480" stroke="#000" stroke-width="2"/>
+    <line x1="385" y1="480" x2="415" y2="480" stroke="#000" stroke-width="2"/>
+    <line x1="390" y1="485" x2="410" y2="485" stroke="#000" stroke-width="2"/>
+    <line x1="395" y1="490" x2="405" y2="490" stroke="#000" stroke-width="2"/>
+    <text x="400" y="505" text-anchor="middle" font-family="Arial" font-size="12">تأريض/Ground</text>
+  </g>
+  
+  <!-- Instructions -->
+  <text x="50" y="530" font-family="Arial" font-size="14" fill="#333">تعليمات التركيب / Installation Instructions:</text>
+  <text x="50" y="550" font-family="Arial" font-size="12" fill="#666">1. وصل اللوح الشمسي بمنظم الشحن / Connect solar panel to charge controller</text>
+  <text x="50" y="570" font-family="Arial" font-size="12" fill="#666">2. وصل منظم الشحن بالبطارية / Connect charge controller to battery</text>
+  <text x="50" y="590" font-family="Arial" font-size="12" fill="#666">3. وصل البطارية بالعاكس / Connect battery to inverter</text>
+</svg>
